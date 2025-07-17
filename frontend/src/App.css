@@ -1,0 +1,259 @@
+/* financial-analysis-suite-web/frontend/src/App.css */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f7f6; /* Light grey background for the page */
+  color: #333; /* Dark text for readability */
+}
+
+.App {
+  text-align: center;
+  max-width: 1200px; /* Max width of the application container */
+  margin: 20px auto; /* Center the app horizontally with some top/bottom margin */
+  background-color: #fff; /* White background for the app itself */
+  border-radius: 8px; /* Rounded corners for the app container */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  overflow: hidden; /* Ensures content stays within rounded corners */
+}
+
+.App-header {
+  background-color: #282c34; /* Dark blue/grey header */
+  padding: 20px;
+  color: white;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.App-header h1 {
+  margin: 0;
+  font-size: 2.2em; /* Larger title */
+}
+
+.App-header p {
+  margin-top: 5px;
+  font-size: 1em;
+  opacity: 0.8; /* Slightly transparent tagline */
+}
+
+.App-nav {
+  display: flex;
+  justify-content: center; /* Center the navigation buttons */
+  background-color: #e2e6e9; /* Lighter grey for navigation bar */
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd; /* Separator line */
+}
+
+.App-nav button {
+  background-color: transparent;
+  border: none;
+  padding: 10px 20px;
+  margin: 0 5px;
+  cursor: pointer;
+  font-size: 1em;
+  color: #555;
+  transition: all 0.3s ease; /* Smooth transition for hover/active states */
+  border-radius: 5px;
+}
+
+.App-nav button:hover {
+  background-color: #d1d5d9; /* Darker on hover */
+  color: #333;
+}
+
+.App-nav button.active {
+  background-color: #007bff; /* Primary blue for active tab */
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3); /* Subtle shadow for active tab */
+}
+
+.App-main {
+  padding: 30px 20px;
+  text-align: left; /* Align content to the left within the main area */
+}
+
+/* Common styling for each tool section */
+.tool-section {
+  background-color: #f9f9f9; /* Very light grey background for tool sections */
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 25px;
+  margin-bottom: 20px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); /* Inner shadow */
+}
+
+.tool-section h3 {
+  color: #007bff; /* Primary blue for tool titles */
+  margin-top: 0;
+  font-size: 1.8em;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.tool-description {
+  font-style: italic;
+  color: #666;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+/* Form element styling */
+.form-group {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column; /* Stack label and input vertically */
+  align-items: flex-start; /* Align label/input to the left */
+}
+
+.form-group label {
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #444;
+}
+
+.form-group input[type="number"],
+.form-group input[type="text"],
+.form-group input[type="file"],
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; /* Include padding in width */
+  font-size: 1em;
+}
+
+.form-group input[type="file"] {
+  padding: 8px; /* Slightly less padding for file inputs */
+}
+
+.calculate-button {
+  background-color: #28a745; /* Green for action buttons */
+  color: white;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  margin-top: 20px;
+}
+
+.calculate-button:hover {
+  background-color: #218838; /* Darker green on hover */
+}
+
+.calculate-button:disabled {
+  background-color: #cccccc; /* Grey when disabled */
+  cursor: not-allowed;
+}
+
+/* Results section styling */
+.results-section {
+  background-color: #e9f7ef; /* Light green for results section background */
+  border: 1px solid #d4edda;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 30px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.results-section h4 {
+  color: #28a745; /* Green for result headings */
+  margin-top: 0;
+  border-bottom: 1px solid #28a745;
+  padding-bottom: 8px;
+  margin-bottom: 15px;
+}
+
+.results-section p strong {
+  color: #0056b3; /* Darker blue for emphasizing key values */
+}
+
+.results-section table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+.results-section th, .results-section td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+}
+
+.results-section th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+/* Message styling */
+.error-message {
+  color: #dc3545; /* Red for errors */
+  font-weight: bold;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.info-message {
+  color: #17a2b8; /* Info blue */
+  font-style: italic;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.warning-message {
+  color: #ffc107; /* Orange for warnings */
+  font-weight: bold;
+  margin-top: 20px;
+  text-align: center;
+}
+
+/* Chart container styling */
+.chart-container {
+    width: 100%;
+    min-height: 400px; /* Minimum height for charts */
+    margin-top: 20px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    padding: 10px; /* Padding inside the chart container */
+    box-sizing: border-box; /* Include padding in width/height */
+}
+
+.chart-container img {
+    max-width: 100%;
+    height: auto;
+    display: block; /* Remove extra space below image */
+    margin: auto; /* Center image */
+}
+
+footer {
+  background-color: #333;
+  color: white;
+  padding: 15px;
+  margin-top: 30px;
+  font-size: 0.9em;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+/* Basic responsiveness for smaller screens */
+@media (max-width: 768px) {
+  .App {
+    margin: 10px;
+    border-radius: 0;
+  }
+  .App-nav {
+    flex-wrap: wrap; /* Allow buttons to wrap */
+  }
+  .App-nav button {
+    flex-grow: 1; /* Make buttons grow to fill space */
+    margin: 5px;
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "rewrites": [
+    { 
+      "source": "/api/(.*)", 
+      "destination": "/backend/api/index.py" 
+    },
+    { 
+      "source": "/(.*)", 
+      "destination": "/frontend/build/$1" 
+    }
+  ],
+  "builds": [
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "outputDirectory": "build" 
+      }
+    },
+    {
+      "src": "backend/api/index.py", 
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "250mb", 
+        "runtime": "python3.11",
+        "zeroConfig": false 
+      }
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" }, 
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
+      ]
+    }
+  ],
+  "installCommand": "pip install -r backend/requirements.txt && npm install --prefix frontend",
+  "buildCommand": "npm run build --prefix frontend"
+}

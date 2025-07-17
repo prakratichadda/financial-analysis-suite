@@ -1,0 +1,11 @@
+invoice_id,invoice_date,first_name,last_name,email,city,product_id,product_name,category,amount,qty,job
+101,2024-01-10,Alice,Smith,alice.s@example.com,New York,PROD001,Premium Service,Service,1500.00,1,Consultant
+102,2024-01-15,Bob,Johnson,bob.j@example.com,Los Angeles,ITEM005,Gadget X,Hardware,250.50,3,Engineer
+103,2024-01-20,Charlie,Brown,charlie.b@example.com,Chicago,ACC123,Support Plan,Service,800.00,1,Manager
+104,2024-02-01,Alice,Smith,alice.s@example.com,New York,PROD001,Premium Service,Service,1500.00,1,Consultant
+105,2024-02-05,David,Lee,david.l@example.com,Houston,BIGITEM,Mega Project,Consulting,50000.00,1,CEO
+106,2024-02-10,Eve,Davis,eve.d@example.com,Chicago,CON001,Consumable Pack,Supplies,50.25,10,Analyst
+107,2024-02-15,Frank,Green,frank.g@example.com,New York,SOFT010,Software License,Software,999.99,1,Developer
+108,2024-02-20,Grace,Hall,grace.h@example.com,Los Angeles,HW007,Hardware Upgrade,Hardware,750.00,2,Engineer
+109,2024-03-01,Heidi,King,heidi.k@example.com,Miami,SERV999,Monthly Retainer,Service,1200.00,1,Consultant
+110,2024-03-05,Ivan,Scott,ivan.s@example.com,New York,LIC005,Annual License,Software,300.00,1,Analyst
