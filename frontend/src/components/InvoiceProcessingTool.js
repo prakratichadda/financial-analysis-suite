@@ -1,5 +1,4 @@
-// financial-analysis-suite-web/frontend/src/components/InvoiceProcessingTool.js
-import React, { useState } => 'react';
+import React, { useState } from 'react';
 import Plot from 'react-plotly.js'; // For Plotly charts
 
 function InvoiceProcessingTool() {
@@ -24,7 +23,7 @@ function InvoiceProcessingTool() {
     formData.append('file', file);
 
     try {
-      const response = await fetch('/api/invoice_process', { // Call Flask backend
+      const response = await fetch(`${process.env.REACT_APP_API_URL || ''}/api/invoice_process`, {
         method: 'POST',
         body: formData,
       });
@@ -36,7 +35,6 @@ function InvoiceProcessingTool() {
 
       const data = await response.json();
       setResults(data);
-
     } catch (err) {
       setError(err.message);
     } finally {
@@ -44,45 +42,29 @@ function InvoiceProcessingTool() {
     }
   };
 
-  // Helper to render a table from pandas orient='split' JSON (receives JSON string)
   const renderTableFromPandasSplitJson = (jsonString, title) => {
     if (!jsonString) {
       console.warn(`renderTableFromPandasSplitJson: jsonString is null or undefined for ${title}`);
-      return <p className="info-message">No {title.toLowerCase()} data available or data format is incorrect (input missing).</p>;
+      return <p className="info-message">No {title.toLowerCase()} data available.</p>;
     }
 
     let dataObject;
     try {
-      dataObject = JSON.parse(jsonString); // CRITICAL CHANGE: Parse the JSON string here
+      dataObject = JSON.parse(jsonString);
     } catch (e) {
-      console.error(`Error parsing JSON string for ${title} table:`, e, jsonString);
+      console.error(`Error parsing JSON string for ${title} table:`, e);
       return <p className="error-message">Error parsing data for {title.toLowerCase()}.</p>;
     }
 
-    // REVISED ESLINT-PROOF CHECKS
-    if (!dataObject) {
-      console.warn(`renderTableFromPandasSplitJson: dataObject is null/undefined after parsing for ${title}`);
-      return <p className="info-message">No {title.toLowerCase()} data available or data format is incorrect (parsed object missing).</p>;
-    }
-    if (!dataObject.columns) {
-      console.warn(`renderTableFromPandasSplitJson: dataObject.columns is missing for ${title}`, dataObject);
-      return <p className="info-message">No {title.toLowerCase()} data available or data format is incorrect (missing columns info).</p>;
-    }
-    if (!Array.isArray(dataObject.data)) {
-      console.warn(`renderTableFromPandasSplitJson: dataObject.data is not an array for ${title}`, dataObject);
-      return <p className="error-message">Data for {title.toLowerCase()} is not in expected array format.</p>;
-    }
-    if (dataObject.data.length === 0) {
-      console.warn(`renderTableFromPandasSplitJson: dataObject.data array is empty for ${title}`, dataObject);
+    if (!dataObject?.columns || !Array.isArray(dataObject.data) || dataObject.data.length === 0) {
       return <p className="info-message">No {title.toLowerCase()} data available.</p>;
     }
-    // END REVISED ESLINT-PROOF CHECKS
-    
+
     const columns = dataObject.columns;
     const indexColName = dataObject.index_col_name || 'Index';
 
     return (
-      <div style={{overflowX: 'auto'}}>
+      <div style={{ overflowX: 'auto' }}>
         <table className="results-table">
           <thead>
             <tr>
@@ -107,53 +89,58 @@ function InvoiceProcessingTool() {
     );
   };
 
-  // Helper to render Plotly figures (receives JSON string)
   const renderPlotlyFigure = (jsonString, title) => {
-      if (!jsonString) {
-          console.warn(`renderPlotlyFigure: jsonString is null or undefined for ${title}`);
-          return <p className="info-message">No {title.toLowerCase()} plot data available (input missing).</p>;
-      }
-      let plotData;
-      try {
-          plotData = JSON.parse(jsonString); // CRITICAL: Parse the JSON string here
-      } catch (e) {
-          console.error(`Error parsing JSON string for ${title} plot:`, e, jsonString);
-          return <p className="error-message">Error parsing plot data for {title.toLowerCase()}.</p>;
-      }
-      if (!plotData || !plotData.data || plotData.data.length === 0) {
-          console.warn(`renderPlotlyFigure: Plot data object is empty or malformed for ${title}`, plotData);
-          return <p className="info-message">No {title.toLowerCase()} plot data available.</p>;
-      }
-      return (
-          <div className="chart-container">
-              <h6>{title}</h6>
-              <Plot
-                  data={plotData.data}
-                  layout={plotData.layout}
-                  style={{ width: '100%', height: '100%' }}
-                  useResizeHandler={true}
-              />
-          </div>
-      );
-  };
+    if (!jsonString) {
+      console.warn(`renderPlotlyFigure: jsonString is null or undefined for ${title}`);
+      return <p className="info-message">No {title.toLowerCase()} plot data available.</p>;
+    }
 
+    let plotData;
+    try {
+      plotData = JSON.parse(jsonString);
+    } catch (e) {
+      console.error(`Error parsing JSON string for ${title} plot:`, e);
+      return <p className="error-message">Error parsing plot data for {title.toLowerCase()}.</p>;
+    }
+
+    if (!plotData?.data?.length) {
+      return <p className="info-message">No {title.toLowerCase()} plot data available.</p>;
+    }
+
+    return (
+      <div className="chart-container" style={{ height: '400px' }}>
+        <h6>{title}</h6>
+        <Plot
+          data={plotData.data}
+          layout={plotData.layout}
+          style={{ width: '100%', height: '100%' }}
+          useResizeHandler={true}
+        />
+      </div>
+    );
+  };
 
   return (
     <div className="InvoiceProcessingTool tool-section">
       <h3>🧾 Invoice Processing & Analysis</h3>
       <p className="tool-description">Upload your invoice data to perform customer segmentation, fraud detection, and budget vs. actual analysis.</p>
-      
+
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="invoiceFile">Upload CSV for Invoice Processing:</label>
-          <input type="file" id="invoiceFile" accept=".csv" onChange={(e) => setFile(e.target.files[0])} />
+          <input
+            type="file"
+            id="invoiceFile"
+            accept=".csv"
+            onChange={(e) => setFile(e.target.files[0])}
+          />
         </div>
         <button type="submit" className="calculate-button" disabled={loading}>
           {loading ? 'Processing...' : 'Process Invoices'}
         </button>
       </form>
 
-      {error && <p className="error-message">Error: {error}</p>}
+      {error && <p className="error-message">{error}</p>}
 
       {results && (
         <div className="results-section">
@@ -162,21 +149,21 @@ function InvoiceProcessingTool() {
           <p>Total Revenue: <strong>₹{results.summary?.total_revenue?.toLocaleString()}</strong></p>
 
           <h5>Customer Segmentation</h5>
-          {renderTableFromPandasSplitJson(results.top_segments_json, "top segments")}
+          {renderTableFromPandasSplitJson(results.top_segments_json, "Top Segments")}
           {renderPlotlyFigure(results.city_revenue_fig_json, "Revenue by City")}
           {renderPlotlyFigure(results.revenue_trend_fig_json, "Monthly Revenue Trend")}
 
           <h5>Invoice Fraud Detection</h5>
-          {renderTableFromPandasSplitJson(results.suspicious_invoices_json, "suspicious invoices")}
+          {renderTableFromPandasSplitJson(results.suspicious_invoices_json, "Suspicious Invoices")}
 
           <h5>Extracted Invoice Entities</h5>
-          {renderTableFromPandasSplitJson(results.extracted_entities_json, "extracted entities")}
+          {renderTableFromPandasSplitJson(results.extracted_entities_json, "Extracted Entities")}
 
           <h5>Budget vs. Actual Analysis (by Job Role)</h5>
-          {renderTableFromPandasSplitJson(results.actual_vs_budget_json, "budget vs. actual")}
+          {renderTableFromPandasSplitJson(results.actual_vs_budget_json, "Budget vs. Actual")}
 
           <h5>Audit Flags for Further Review</h5>
-          {renderTableFromPandasSplitJson(results.audit_flags_json, "audit flags")}
+          {renderTableFromPandasSplitJson(results.audit_flags_json, "Audit Flags")}
         </div>
       )}
     </div>
