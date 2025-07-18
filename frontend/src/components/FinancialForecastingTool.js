@@ -43,7 +43,7 @@ function FinancialForecastingTool() {
       }
 
       const data = await response.json(); // Data is already a JS object here
-      console.log("Financial Forecasting API Response Data:", data); // KEEP THIS LOG FOR YOUR DEBUGGING
+      console.log("Financial Forecasting API Response Data:", data);
       setResults(data);
 
     } catch (err) {
@@ -53,7 +53,7 @@ function FinancialForecastingTool() {
     }
   };
 
-  // Helper to render a table from pandas orient='split' JSON (receives JSON string)
+  // Helper to render a table from pandas orient='split' JSON (NOW PARSES THE STRING FIRST)
   const renderTableFromPandasSplitJson = (jsonString, title) => {
     if (!jsonString) {
       console.warn(`renderTableFromPandasSplitJson: jsonString is null or undefined for ${title}`);
@@ -62,22 +62,23 @@ function FinancialForecastingTool() {
 
     let dataObject;
     try {
-      dataObject = JSON.parse(jsonString); // <--- CRITICAL CHANGE: Parse the JSON string here
+      dataObject = JSON.parse(jsonString); // CRITICAL CHANGE: Parse the JSON string here
     } catch (e) {
       console.error(`Error parsing JSON string for ${title} table:`, e, jsonString);
       return <p className="error-message">Error parsing data for {title.toLowerCase()}.</p>;
     }
 
-    if (!dataObject || !dataObject.columns || !Array.isArray(dataObject.data) || dataObject.data.length === 0) {
-      console.warn(`renderTableFromPandasSplitJson: Data object is empty or malformed for ${title}`, dataObject);
-      return <p className="info-message">No {title.toLowerCase()} data available or data format is incorrect.</p>;
+    // REVISED LINE FOR ESLINT no-mixed-operators: Explicitly group OR conditions
+    // This addresses the "Line 81" ESLint error.
+    if ((!dataObject) || (!dataObject.columns) || (!Array.isArray(dataObject.data)) || (dataObject.data.length === 0)) {
+        console.warn(`renderTableFromPandasSplitJson: Data object is empty or malformed for ${title}`, dataObject);
+        return <p className="info-message">No {title.toLowerCase()} data available or data format is incorrect.</p>;
     }
     
     // Process data to display index and format numbers
     const processedRows = dataObject.data.map((row, rowIndex) => {
         const newRow = [];
         if (dataObject.index && dataObject.index[rowIndex] !== undefined) {
-            // Attempt to format dates if the index looks like an ISO date string
             if (String(dataObject.index[rowIndex]).includes('T') || String(dataObject.index[rowIndex]).includes('-') && !isNaN(new Date(dataObject.index[rowIndex]))) {
                 newRow.push(new Date(dataObject.index[rowIndex]).toLocaleDateString('en-GB')); 
             } else {
@@ -194,7 +195,8 @@ function FinancialForecastingTool() {
               <img src={`data:image/png;base64,${results.additional_plots.numeric_trends}`} alt="Numeric Trends" />
             </div>
           )}
-          {!results.additional_plots?.numeric_trends && results.additional_plots && Object.keys(results.additional_plots).length > 0 &&
+          {!results.additional_plots?.numeric_trends && 
+           results.additional_plots && Object.keys(results.additional_plots).length > 0 &&
              <p className="info-message">No numeric trends plot available.</p>
           }
 
@@ -261,7 +263,7 @@ function MarketIndicatorSelector({ plots }) { // 'plots' here is an object where
     let currentPlotData = null;
     if (selectedIndicator && plots[selectedIndicator]) {
         try {
-            currentPlotData = JSON.parse(plots[selectedIndicator]); // <--- CRITICAL: Parse the selected indicator's JSON string
+            currentPlotData = JSON.parse(plots[selectedIndicator]); // CRITICAL: Parse the selected indicator's JSON string
         } catch (e) {
             console.error(`Error parsing JSON for selected indicator plot (${selectedIndicator}):`, e, plots[selectedIndicator]);
         }
