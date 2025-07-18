@@ -7,7 +7,7 @@ function FraudDetectionTool() {
   const [dateColumnName, setDateColumnName] = useState('TransactionDate');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [results, setResults] = useState(null); // 'results' will store the directly parsed JS object
+  const [results, setResults] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,7 +37,7 @@ function FraudDetectionTool() {
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json(); // Data is already a JS object here
+      const data = await response.json();
       setResults(data);
 
     } catch (err) {
@@ -47,32 +47,39 @@ function FraudDetectionTool() {
     }
   };
 
-  // Helper to render a table from pandas orient='split' JSON (now takes JS object)
-  const renderTableFromPandasSplitJson = (dataObject, title) => { // Renamed param
-    // Add defensive checks for dataObject and its properties
-    if (!dataObject || !dataObject.columns || !Array.isArray(dataObject.data)) { // Ensure data is an array
-      return <p className="info-message">No {title.toLowerCase()} data available or data format is incorrect.</p>;
+  // Helper to render a table from pandas orient='split' JSON (receives JSON string)
+  const renderTableFromPandasSplitJson = (jsonString, title) => {
+    if (!jsonString) {
+      console.warn(`renderTableFromPandasSplitJson: jsonString is null or undefined for ${title}`);
+      return <p className="info-message">No {title.toLowerCase()} data available or data format is incorrect (input missing).</p>;
     }
-    if (dataObject.data.length === 0) { // Check length after confirming it's an array
-        return <p className="info-message">No {title.toLowerCase()} data available.</p>;
+
+    let dataObject;
+    try {
+      dataObject = JSON.parse(jsonString); // CRITICAL CHANGE: Parse the JSON string here
+    } catch (e) {
+      console.error(`Error parsing JSON string for ${title} table:`, e, jsonString);
+      return <p className="error-message">Error parsing data for {title.toLowerCase()}.</p>;
+    }
+
+    // REVISED LINE FOR ESLINT no-mixed-operators: Explicitly group OR conditions
+    if ((!dataObject) || (!dataObject.columns) || (!Array.isArray(dataObject.data)) || (dataObject.data.length === 0)) {
+        console.warn(`renderTableFromPandasSplitJson: Data object is empty or malformed for ${title}`, dataObject);
+        return <p className="info-message">No {title.toLowerCase()} data available or data format is incorrect.</p>;
     }
     
-    // Assuming dataObject.index contains the index values and dataObject.data contains the row values
     const processedRows = dataObject.data.map((row, rowIndex) => {
         const newRow = [];
-        // Add index value as the first cell if it exists
         if (dataObject.index && dataObject.index[rowIndex] !== undefined) {
             newRow.push(dataObject.index[rowIndex]);
         }
-        // Add actual row data
         row.forEach(cell => newRow.push(cell));
         return newRow;
     });
 
-    // Create column headers
     const columns = dataObject.columns;
     const headerCells = [];
-    if (dataObject.index) { // If there's an index, add a header for it
+    if (dataObject.index) {
       headerCells.push(<th key="index_header">{dataObject.index_col_name || "Index"}</th>);
     }
     headerCells.push(...columns.map(col => <th key={col}>{col}</th>));
@@ -131,14 +138,18 @@ function FraudDetectionTool() {
       {results && (
         <div className="results-section">
           <h4>Detected Anomalies</h4>
-          {/* Add more robust checks for anomalies_data_json before accessing .data.length */}
-          {results.anomalies_data_json && results.anomalies_data_json.data && results.anomalies_data_json.data.length > 0 ? (
+          {/* Pass the JSON string to be parsed inside helper */}
+          {results.anomalies_data_json && (
             renderTableFromPandasSplitJson(results.anomalies_data_json, "anomalies")
-          ) : (
-            <p className="info-message">No anomalies detected.</p>
-          )}
+          ) }
+          {/* If the helper returns null/message, provide a specific message here */}
+          {!results.anomalies_data_json || 
+           (JSON.parse(results.anomalies_data_json).data && JSON.parse(results.anomalies_data_json).data.length === 0) ?
+            <p className="info-message">No anomalies detected.</p> : null
+          }
 
-          {/* Display plots - check if plot_images exists AND has keys */}
+
+          {/* Display plots (Matplotlib base64 images - no JSON.parse needed) */}
           {results.plot_images && Object.keys(results.plot_images).length > 0 && (
             <div>
               <h5>Visualizations</h5>
@@ -151,6 +162,10 @@ function FraudDetectionTool() {
               ))}
             </div>
           )}
+          {!results.plot_images || Object.keys(results.plot_images).length === 0 ?
+             <p className="info-message">No visualization plots available.</p> : null
+          }
+
 
           {results.anomaly_summary && ( // Check if anomaly_summary exists
             <div>
@@ -159,13 +174,21 @@ function FraudDetectionTool() {
               {Array.isArray(results.anomaly_summary) && results.anomaly_summary.map((line, index) => <p key={index}>{line}</p>)}
             </div>
           )}
-          {/* Add more robust checks for top_anomalies_data_json before accessing .data.length */}
-          {results.top_anomalies_data_json && results.top_anomalies_data_json.data && results.top_anomalies_data_json.data.length > 0 && (
+          {!results.anomaly_summary || !Array.isArray(results.anomaly_summary) || results.anomaly_summary.length === 0 ?
+              <p className="info-message">No anomaly summary available.</p> : null
+          }
+
+          {/* Pass the JSON string to be parsed inside helper */}
+          {results.top_anomalies_data_json && (
             <div>
               <h5>Top Anomalies</h5>
               {renderTableFromPandasSplitJson(results.top_anomalies_data_json, "top anomalies")}
             </div>
           )}
+          {!results.top_anomalies_data_json || 
+           (JSON.parse(results.top_anomalies_data_json).data && JSON.parse(results.top_anomalies_data_json).data.length === 0) ?
+              <p className="info-message">No top anomalies detected.</p> : null
+          }
 
         </div>
       )}
