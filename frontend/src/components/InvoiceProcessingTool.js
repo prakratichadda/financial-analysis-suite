@@ -6,7 +6,7 @@ function InvoiceProcessingTool() {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [results, setResults] = useState(null); // 'results' will store the directly parsed JS object
+  const [results, setResults] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,8 +34,7 @@ function InvoiceProcessingTool() {
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json(); // Data is already a JS object here
-      console.log("Invoice Processing API Response Data:", data); // <--- ADD THIS LINE FOR DEBUGGING
+      const data = await response.json();
       setResults(data);
 
     } catch (err) {
@@ -45,11 +44,25 @@ function InvoiceProcessingTool() {
     }
   };
 
-  const renderTableFromPandasSplitJson = (dataObject, title) => {
-    // This helper now is the primary judge of emptiness
-    if (!dataObject || !dataObject.columns || !Array.isArray(dataObject.data) || dataObject.data.length === 0) {
-      // It returns the 'No data' message or null if no title specified
-      return <p className="info-message">No {title.toLowerCase()} data available.</p>;
+  // Helper to render a table from pandas orient='split' JSON (receives JSON string)
+  const renderTableFromPandasSplitJson = (jsonString, title) => {
+    if (!jsonString) {
+      console.warn(`renderTableFromPandasSplitJson: jsonString is null or undefined for ${title}`);
+      return <p className="info-message">No {title.toLowerCase()} data available or data format is incorrect (input missing).</p>;
+    }
+
+    let dataObject;
+    try {
+      dataObject = JSON.parse(jsonString); // CRITICAL CHANGE: Parse the JSON string here
+    } catch (e) {
+      console.error(`Error parsing JSON string for ${title} table:`, e, jsonString);
+      return <p className="error-message">Error parsing data for {title.toLowerCase()}.</p>;
+    }
+
+    // REVISED LINE FOR ESLINT no-mixed-operators: Explicitly group OR conditions
+    if ((!dataObject) || (!dataObject.columns) || (!Array.isArray(dataObject.data)) || (dataObject.data.length === 0)) {
+        console.warn(`renderTableFromPandasSplitJson: Data object is empty or malformed for ${title}`, dataObject);
+        return <p className="info-message">No {title.toLowerCase()} data available or data format is incorrect.</p>;
     }
     
     const columns = dataObject.columns;
@@ -81,11 +94,21 @@ function InvoiceProcessingTool() {
     );
   };
 
+  // Helper to render Plotly figures (receives JSON string)
   const renderPlotlyFigure = (jsonString, title) => {
-      // This helper now is the primary judge of emptiness for Plotly
-      if (!jsonString) return null;
-      const plotData = JSON.parse(jsonString); // Still need to parse as it's a JSON string from Flask
+      if (!jsonString) {
+          console.warn(`renderPlotlyFigure: jsonString is null or undefined for ${title}`);
+          return <p className="info-message">No {title.toLowerCase()} plot data available (input missing).</p>;
+      }
+      let plotData;
+      try {
+          plotData = JSON.parse(jsonString); // CRITICAL: Parse the JSON string here
+      } catch (e) {
+          console.error(`Error parsing JSON string for ${title} plot:`, e, jsonString);
+          return <p className="error-message">Error parsing plot data for {title.toLowerCase()}.</p>;
+      }
       if (!plotData || !plotData.data || plotData.data.length === 0) {
+          console.warn(`renderPlotlyFigure: Plot data object is empty or malformed for ${title}`, plotData);
           return <p className="info-message">No {title.toLowerCase()} plot data available.</p>;
       }
       return (
@@ -126,22 +149,21 @@ function InvoiceProcessingTool() {
           <p>Total Revenue: <strong>₹{results.summary?.total_revenue?.toLocaleString()}</strong></p>
 
           <h5>Customer Segmentation</h5>
-          {/* Simplified conditional check */}
-          {renderTableFromPandasSplitJson(JSON.parse(results.top_segments_json), "top segments")}
+          {renderTableFromPandasSplitJson(results.top_segments_json, "top segments")}
           {renderPlotlyFigure(results.city_revenue_fig_json, "Revenue by City")}
           {renderPlotlyFigure(results.revenue_trend_fig_json, "Monthly Revenue Trend")}
 
           <h5>Invoice Fraud Detection</h5>
-          {renderTableFromPandasSplitJson(JSON.parse(results.suspicious_invoices_json), "suspicious invoices")}
+          {renderTableFromPandasSplitJson(results.suspicious_invoices_json, "suspicious invoices")}
 
           <h5>Extracted Invoice Entities</h5>
-          {renderTableFromPandasSplitJson(JSON.parse(results.extracted_entities_json), "extracted entities")}
+          {renderTableFromPandasSplitJson(results.extracted_entities_json, "extracted entities")}
 
           <h5>Budget vs. Actual Analysis (by Job Role)</h5>
-          {renderTableFromPandasSplitJson(JSON.parse(results.actual_vs_budget_json), "budget vs. actual")}
+          {renderTableFromPandasSplitJson(results.actual_vs_budget_json, "budget vs. actual")}
 
           <h5>Audit Flags for Further Review</h5>
-          {renderTableFromPandasSplitJson(JSON.parse(results.audit_flags_json), "audit flags")}
+          {renderTableFromPandasSplitJson(results.audit_flags_json, "audit flags")}
         </div>
       )}
     </div>
