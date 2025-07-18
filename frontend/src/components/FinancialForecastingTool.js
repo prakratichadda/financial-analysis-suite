@@ -32,17 +32,17 @@ function FinancialForecastingTool() {
     formData.append('contamination', contamination);
 
     try {
-      const response = await fetch('/api/forecast', { // Call Flask backend
+      const response = await fetch('/api/forecast', {
         method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
-        const errorData = await response.json(); // Assuming error response is JSON
+        const errorData = await response.json();
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json(); // Data is already a JS object here
+      const data = await response.json();
       console.log("Financial Forecasting API Response Data:", data);
       setResults(data);
 
@@ -53,7 +53,7 @@ function FinancialForecastingTool() {
     }
   };
 
-  // Helper to render a table from pandas orient='split' JSON (NOW PARSES THE STRING FIRST)
+  // Helper to render a table from pandas orient='split' JSON (receives JSON string)
   const renderTableFromPandasSplitJson = (jsonString, title) => {
     if (!jsonString) {
       console.warn(`renderTableFromPandasSplitJson: jsonString is null or undefined for ${title}`);
@@ -62,18 +62,30 @@ function FinancialForecastingTool() {
 
     let dataObject;
     try {
-      dataObject = JSON.parse(jsonString); // CRITICAL CHANGE: Parse the JSON string here
+      dataObject = JSON.parse(jsonString);
     } catch (e) {
       console.error(`Error parsing JSON string for ${title} table:`, e, jsonString);
       return <p className="error-message">Error parsing data for {title.toLowerCase()}.</p>;
     }
 
-    // REVISED LINE FOR ESLINT no-mixed-operators: Explicitly group OR conditions
-    // This addresses the "Line 81" ESLint error.
-    if ((!dataObject) || (!dataObject.columns) || (!Array.isArray(dataObject.data)) || (dataObject.data.length === 0)) {
-        console.warn(`renderTableFromPandasSplitJson: Data object is empty or malformed for ${title}`, dataObject);
-        return <p className="info-message">No {title.toLowerCase()} data available or data format is incorrect.</p>;
+    // --- REVISED ESLINT-PROOF CHECKS (Sequential if statements for clarity) ---
+    if (!dataObject) {
+      console.warn(`renderTableFromPandasSplitJson: dataObject is null/undefined after parsing for ${title}`);
+      return <p className="info-message">No {title.toLowerCase()} data available or data format is incorrect (parsed object missing).</p>;
     }
+    if (!dataObject.columns) {
+      console.warn(`renderTableFromPandasSplitJson: dataObject.columns is missing for ${title}`, dataObject);
+      return <p className="info-message">No {title.toLowerCase()} data available or data format is incorrect (missing columns info).</p>;
+    }
+    if (!Array.isArray(dataObject.data)) {
+      console.warn(`renderTableFromPandasSplitJson: dataObject.data is not an array for ${title}`, dataObject);
+      return <p className="error-message">Data for {title.toLowerCase()} is not in expected array format.</p>;
+    }
+    if (dataObject.data.length === 0) {
+      console.warn(`renderTableFromPandasSplitJson: dataObject.data array is empty for ${title}`, dataObject);
+      return <p className="info-message">No {title.toLowerCase()} data available.</p>;
+    }
+    // --- END REVISED ESLINT-PROOF CHECKS ---
     
     // Process data to display index and format numbers
     const processedRows = dataObject.data.map((row, rowIndex) => {
