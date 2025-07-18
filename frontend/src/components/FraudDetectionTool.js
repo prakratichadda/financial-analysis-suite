@@ -62,11 +62,24 @@ function FraudDetectionTool() {
       return <p className="error-message">Error parsing data for {title.toLowerCase()}.</p>;
     }
 
-    // REVISED LINE FOR ESLINT no-mixed-operators: Explicitly group OR conditions
-    if ((!dataObject) || (!dataObject.columns) || (!Array.isArray(dataObject.data)) || (dataObject.data.length === 0)) {
-        console.warn(`renderTableFromPandasSplitJson: Data object is empty or malformed for ${title}`, dataObject);
-        return <p className="info-message">No {title.toLowerCase()} data available or data format is incorrect.</p>;
+    // REVISED ESLINT-PROOF CHECKS
+    if (!dataObject) {
+      console.warn(`renderTableFromPandasSplitJson: dataObject is null/undefined after parsing for ${title}`);
+      return <p className="info-message">No {title.toLowerCase()} data available or data format is incorrect (parsed object missing).</p>;
     }
+    if (!dataObject.columns) {
+      console.warn(`renderTableFromPandasSplitJson: dataObject.columns is missing for ${title}`, dataObject);
+      return <p className="info-message">No {title.toLowerCase()} data available or data format is incorrect (missing columns info).</p>;
+    }
+    if (!Array.isArray(dataObject.data)) {
+      console.warn(`renderTableFromPandasSplitJson: dataObject.data is not an array for ${title}`, dataObject);
+      return <p className="error-message">Data for {title.toLowerCase()} is not in expected array format.</p>;
+    }
+    if (dataObject.data.length === 0) {
+      console.warn(`renderTableFromPandasSplitJson: dataObject.data array is empty for ${title}`, dataObject);
+      return <p className="info-message">No {title.toLowerCase()} data available.</p>;
+    }
+    // END REVISED ESLINT-PROOF CHECKS
     
     const processedRows = dataObject.data.map((row, rowIndex) => {
         const newRow = [];
@@ -142,7 +155,7 @@ function FraudDetectionTool() {
           {results.anomalies_data_json && (
             renderTableFromPandasSplitJson(results.anomalies_data_json, "anomalies")
           ) }
-          {/* If the helper returns null/message, provide a specific message here */}
+          {/* Conditional message if no anomalies are found */}
           {!results.anomalies_data_json || 
            (JSON.parse(results.anomalies_data_json).data && JSON.parse(results.anomalies_data_json).data.length === 0) ?
             <p className="info-message">No anomalies detected.</p> : null
@@ -155,8 +168,7 @@ function FraudDetectionTool() {
               <h5>Visualizations</h5>
               {Object.entries(results.plot_images).map(([key, base64Image]) => (
                 <div key={key} className="chart-container">
-                  {/* Basic title formatting */}
-                  <h6>{key.replace(/_/g, ' ').charAt(0).toUpperCase() + key.replace(/_/g, ' ').slice(1)}</h6> 
+                  <h6>{key.replace(/_/g, ' ').charAt(0).toUpperCase() + key.replace(/_/g, ' ').slice(1)}</h6>
                   <img src={`data:image/png;base64,${base64Image}`} alt={key} />
                 </div>
               ))}
@@ -167,10 +179,9 @@ function FraudDetectionTool() {
           }
 
 
-          {results.anomaly_summary && ( // Check if anomaly_summary exists
+          {results.anomaly_summary && (
             <div>
               <h5>Anomaly Summary</h5>
-              {/* Ensure anomaly_summary is an array before mapping */}
               {Array.isArray(results.anomaly_summary) && results.anomaly_summary.map((line, index) => <p key={index}>{line}</p>)}
             </div>
           )}
