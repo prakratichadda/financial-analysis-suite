@@ -1,5 +1,5 @@
 // financial-analysis-suite-web/frontend/src/components/InvoiceProcessingTool.js
-import React, { useState } from 'react';
+import React, { useState } => 'react';
 import Plot from 'react-plotly.js'; // For Plotly charts
 
 function InvoiceProcessingTool() {
@@ -59,11 +59,24 @@ function InvoiceProcessingTool() {
       return <p className="error-message">Error parsing data for {title.toLowerCase()}.</p>;
     }
 
-    // REVISED LINE FOR ESLINT no-mixed-operators: Explicitly group OR conditions
-    if ((!dataObject) || (!dataObject.columns) || (!Array.isArray(dataObject.data)) || (dataObject.data.length === 0)) {
-        console.warn(`renderTableFromPandasSplitJson: Data object is empty or malformed for ${title}`, dataObject);
-        return <p className="info-message">No {title.toLowerCase()} data available or data format is incorrect.</p>;
+    // REVISED ESLINT-PROOF CHECKS
+    if (!dataObject) {
+      console.warn(`renderTableFromPandasSplitJson: dataObject is null/undefined after parsing for ${title}`);
+      return <p className="info-message">No {title.toLowerCase()} data available or data format is incorrect (parsed object missing).</p>;
     }
+    if (!dataObject.columns) {
+      console.warn(`renderTableFromPandasSplitJson: dataObject.columns is missing for ${title}`, dataObject);
+      return <p className="info-message">No {title.toLowerCase()} data available or data format is incorrect (missing columns info).</p>;
+    }
+    if (!Array.isArray(dataObject.data)) {
+      console.warn(`renderTableFromPandasSplitJson: dataObject.data is not an array for ${title}`, dataObject);
+      return <p className="error-message">Data for {title.toLowerCase()} is not in expected array format.</p>;
+    }
+    if (dataObject.data.length === 0) {
+      console.warn(`renderTableFromPandasSplitJson: dataObject.data array is empty for ${title}`, dataObject);
+      return <p className="info-message">No {title.toLowerCase()} data available.</p>;
+    }
+    // END REVISED ESLINT-PROOF CHECKS
     
     const columns = dataObject.columns;
     const indexColName = dataObject.index_col_name || 'Index';
